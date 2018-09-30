@@ -11,9 +11,9 @@ namespace RubberStampEffect
 {
     public class PluginSupportInfo : IPluginSupportInfo
     {
-        public string Author => ((AssemblyCopyrightAttribute)base.GetType().Assembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false)[0]).Copyright;
-        public string Copyright => ((AssemblyDescriptionAttribute)base.GetType().Assembly.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false)[0]).Description;
-        public string DisplayName => ((AssemblyProductAttribute)base.GetType().Assembly.GetCustomAttributes(typeof(AssemblyProductAttribute), false)[0]).Product;
+        public string Author => base.GetType().Assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright;
+        public string Copyright => base.GetType().Assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+        public string DisplayName => base.GetType().Assembly.GetCustomAttribute<AssemblyProductAttribute>().Product;
         public Version Version => base.GetType().Assembly.GetName().Version;
         public Uri WebsiteUri => new Uri("https://forums.getpaint.net/index.php?showtopic=111225");
     }
@@ -28,19 +28,15 @@ namespace RubberStampEffect
         private int Amount5 = 85;
         private bool Amount6 = false;
 
-        private readonly BinaryPixelOp normalOp = LayerBlendModeUtil.CreateCompositionOp(LayerBlendMode.Normal);
         private readonly CloudsEffect cloudsEffect = new CloudsEffect();
         private PropertyCollection cloudsProps;
         private Surface emptySurface;
         private Surface cloudSurface;
 
+        private static readonly Image StaticIcon = new Bitmap(typeof(RubberStampEffectPlugin), "RubberStamp.png");
 
-        private const string StaticName = "Rubber Stamp";
-        private static Image StaticIcon => new Bitmap(typeof(RubberStampEffectPlugin), "RubberStamp.png");
-        private const string StaticMenu = "Object";
-        
         public RubberStampEffectPlugin()
-            : base(StaticName, StaticIcon, StaticMenu, EffectFlags.Configurable)
+            : base("Rubber Stamp", StaticIcon, "Object", EffectFlags.Configurable)
         {
             instanceSeed = unchecked((int)DateTime.Now.Ticks);
         }
@@ -59,25 +55,26 @@ namespace RubberStampEffect
         private static Random RandomNumber;
 
         private int randomSeed;
-        private int instanceSeed;
-
+        private readonly int instanceSeed;
 
         protected override PropertyCollection OnCreatePropertyCollection()
         {
-            List<Property> props = new List<Property>();
+            ColorBgra PrimaryColor = EnvironmentParameters.PrimaryColor.NewAlpha(255);
 
-            ColorBgra PrimaryColor = EnvironmentParameters.PrimaryColor;
-            PrimaryColor.A = 255;
+            List<Property> props = new List<Property>
+            {
+                new Int32Property(PropertyNames.Amount1, 50, 3, 100),
+                new DoubleProperty(PropertyNames.Amount2, 1.0, 0, 1.0),
+                new Int32Property(PropertyNames.Amount5, 85, byte.MinValue, byte.MaxValue),
+                new Int32Property(PropertyNames.Amount3, 0, 0, 255),
+                new BooleanProperty(PropertyNames.Amount6, false),
+                new Int32Property(PropertyNames.Amount4, ColorBgra.ToOpaqueInt32(PrimaryColor), 0, 0xffffff)
+            };
 
-            props.Add(new Int32Property(PropertyNames.Amount1, 50, 3, 100));
-            props.Add(new DoubleProperty(PropertyNames.Amount2, 1.0, 0, 1.0));
-            props.Add(new Int32Property(PropertyNames.Amount5, 85, byte.MinValue, byte.MaxValue));
-            props.Add(new Int32Property(PropertyNames.Amount3, 0, 0, 255));
-            props.Add(new BooleanProperty(PropertyNames.Amount6, false));
-            props.Add(new Int32Property(PropertyNames.Amount4, ColorBgra.ToOpaqueInt32(PrimaryColor), 0, 0xffffff));
-
-            List<PropertyCollectionRule> propRules = new List<PropertyCollectionRule>();
-            propRules.Add(new ReadOnlyBoundToBooleanRule(PropertyNames.Amount4, PropertyNames.Amount6, true));
+            List<PropertyCollectionRule> propRules = new List<PropertyCollectionRule>
+            {
+                new ReadOnlyBoundToBooleanRule(PropertyNames.Amount4, PropertyNames.Amount6, true)
+            };
 
             return new PropertyCollection(props, propRules);
         }
@@ -102,7 +99,6 @@ namespace RubberStampEffect
             configUI.SetPropertyControlValue(PropertyNames.Amount6, ControlInfoPropertyNames.DisplayName, "Color");
             configUI.SetPropertyControlValue(PropertyNames.Amount6, ControlInfoPropertyNames.Description, "Use Custom Color");
 
-
             return configUI;
         }
 
@@ -115,7 +111,6 @@ namespace RubberStampEffect
             Amount4 = ColorBgra.FromOpaqueInt32(newToken.GetProperty<Int32Property>(PropertyNames.Amount4).Value);
             Amount5 = newToken.GetProperty<Int32Property>(PropertyNames.Amount5).Value;
             Amount6 = newToken.GetProperty<BooleanProperty>(PropertyNames.Amount6).Value;
-
 
             if (emptySurface == null)
                 emptySurface = new Surface(srcArgs.Size);
@@ -131,7 +126,6 @@ namespace RubberStampEffect
             using (EffectEnvironmentParameters environParameters = new EffectEnvironmentParameters(ColorBgra.Black, Color.FromArgb(Amount5, Color.Black), 0, EnvironmentParameters.GetSelection(srcArgs.Bounds), emptySurface))
                 cloudsEffect.EnvironmentParameters = environParameters;
             cloudsEffect.SetRenderInfo(CloudsParameters, new RenderArgs(cloudSurface), new RenderArgs(emptySurface));
-
 
             base.OnSetRenderInfo(newToken, dstArgs, srcArgs);
         }
