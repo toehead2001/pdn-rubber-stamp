@@ -38,7 +38,6 @@ namespace RubberStampEffect
         public RubberStampEffectPlugin()
             : base("Rubber Stamp", StaticIcon, "Object", new EffectOptions { Flags = EffectFlags.Configurable })
         {
-            instanceSeed = unchecked((int)DateTime.Now.Ticks);
         }
 
         private enum PropertyNames
@@ -50,12 +49,6 @@ namespace RubberStampEffect
             UseCustomColor,
             Color
         }
-
-        [ThreadStatic]
-        private static Random RandomNumber;
-
-        private int randomSeed;
-        private readonly int instanceSeed;
 
         protected override PropertyCollection OnCreatePropertyCollection()
         {
@@ -111,8 +104,6 @@ namespace RubberStampEffect
             customColor = newToken.GetProperty<BooleanProperty>(PropertyNames.UseCustomColor).Value;
             color = ColorBgra.FromOpaqueInt32(newToken.GetProperty<Int32Property>(PropertyNames.Color).Value);
 
-            randomSeed = reseed;
-
             if (emptySurface == null)
                 emptySurface = new Surface(srcArgs.Size);
             if (cloudSurface == null)
@@ -134,17 +125,10 @@ namespace RubberStampEffect
         protected override void OnRender(Rectangle[] renderRects, int startIndex, int length)
         {
             if (length == 0) return;
-            RandomNumber = GetRandomNumberGenerator(renderRects, startIndex);
             for (int i = startIndex; i < startIndex + length; ++i)
             {
                 Render(DstArgs.Surface, SrcArgs.Surface, renderRects[i]);
             }
-        }
-
-        private Random GetRandomNumberGenerator(Rectangle[] rois, int startIndex)
-        {
-            Rectangle roi = rois[startIndex];
-            return new Random(instanceSeed ^ (randomSeed << 16) ^ (roi.X << 8) ^ roi.Y);
         }
 
         private void Render(Surface dst, Surface src, Rectangle rect)
