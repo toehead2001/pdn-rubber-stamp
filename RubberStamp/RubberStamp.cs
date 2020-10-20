@@ -21,12 +21,12 @@ namespace RubberStampEffect
     [PluginSupportInfo(typeof(PluginSupportInfo), DisplayName = "Rubber Stamp")]
     public class RubberStampEffectPlugin : PropertyBasedEffect
     {
-        private int scale = 50; // [2,1000] Scale
-        private double roughness = 1.0; // [0,1] Roughness
-        private int reseed = 0; // [255] Reseed
-        private ColorBgra color = ColorBgra.Black; // Color
+        private int scale = 50;
+        private double roughness = 1.0;
         private int minOpacity = 85;
+        private int reseed = 0;
         private bool customColor = false;
+        private ColorBgra color = ColorBgra.Black;
 
         private readonly CloudsEffect cloudsEffect = new CloudsEffect();
         private PropertyCollection cloudsProps;
@@ -45,10 +45,10 @@ namespace RubberStampEffect
         {
             Scale,
             Roughness,
-            Reseed,
-            Color,
             MinimumOpacity,
-            UseCustomColor
+            Reseed,
+            UseCustomColor,
+            Color
         }
 
         [ThreadStatic]
@@ -89,15 +89,15 @@ namespace RubberStampEffect
             configUI.SetPropertyControlValue(PropertyNames.Roughness, ControlInfoPropertyNames.SliderSmallChange, 0.05);
             configUI.SetPropertyControlValue(PropertyNames.Roughness, ControlInfoPropertyNames.UpDownIncrement, 0.01);
             configUI.SetPropertyControlValue(PropertyNames.Roughness, ControlInfoPropertyNames.DecimalPlaces, 3);
+            configUI.SetPropertyControlValue(PropertyNames.MinimumOpacity, ControlInfoPropertyNames.DisplayName, "Minimum Opacity");
+            configUI.SetPropertyControlValue(PropertyNames.MinimumOpacity, ControlInfoPropertyNames.ControlColors, new ColorBgra[] { ColorBgra.White, ColorBgra.Black });
             configUI.SetPropertyControlValue(PropertyNames.Reseed, ControlInfoPropertyNames.DisplayName, string.Empty);
             configUI.SetPropertyControlType(PropertyNames.Reseed, PropertyControlType.IncrementButton);
             configUI.SetPropertyControlValue(PropertyNames.Reseed, ControlInfoPropertyNames.ButtonText, "Reseed");
-            configUI.SetPropertyControlValue(PropertyNames.Color, ControlInfoPropertyNames.DisplayName, string.Empty);
-            configUI.SetPropertyControlType(PropertyNames.Color, PropertyControlType.ColorWheel);
-            configUI.SetPropertyControlValue(PropertyNames.MinimumOpacity, ControlInfoPropertyNames.DisplayName, "Minimum Opacity");
-            configUI.SetPropertyControlValue(PropertyNames.MinimumOpacity, ControlInfoPropertyNames.ControlColors, new ColorBgra[] { ColorBgra.White, ColorBgra.Black });
             configUI.SetPropertyControlValue(PropertyNames.UseCustomColor, ControlInfoPropertyNames.DisplayName, "Color");
             configUI.SetPropertyControlValue(PropertyNames.UseCustomColor, ControlInfoPropertyNames.Description, "Use Custom Color");
+            configUI.SetPropertyControlValue(PropertyNames.Color, ControlInfoPropertyNames.DisplayName, string.Empty);
+            configUI.SetPropertyControlType(PropertyNames.Color, PropertyControlType.ColorWheel);
 
             return configUI;
         }
@@ -106,11 +106,12 @@ namespace RubberStampEffect
         {
             scale = newToken.GetProperty<Int32Property>(PropertyNames.Scale).Value;
             roughness = newToken.GetProperty<DoubleProperty>(PropertyNames.Roughness).Value;
-            reseed = (byte)newToken.GetProperty<Int32Property>(PropertyNames.Reseed).Value;
-            randomSeed = reseed;
-            color = ColorBgra.FromOpaqueInt32(newToken.GetProperty<Int32Property>(PropertyNames.Color).Value);
             minOpacity = newToken.GetProperty<Int32Property>(PropertyNames.MinimumOpacity).Value;
+            reseed = (byte)newToken.GetProperty<Int32Property>(PropertyNames.Reseed).Value;
             customColor = newToken.GetProperty<BooleanProperty>(PropertyNames.UseCustomColor).Value;
+            color = ColorBgra.FromOpaqueInt32(newToken.GetProperty<Int32Property>(PropertyNames.Color).Value);
+
+            randomSeed = reseed;
 
             if (emptySurface == null)
                 emptySurface = new Surface(srcArgs.Size);
