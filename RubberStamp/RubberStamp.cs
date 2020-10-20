@@ -28,7 +28,7 @@ namespace RubberStampEffect
         private bool customColor = false;
         private ColorBgra color = ColorBgra.Black;
 
-        private readonly CloudsEffect cloudsEffect = new CloudsEffect();
+        private CloudsEffect cloudsEffect = new CloudsEffect();
         private PropertyCollection cloudsProps;
         private Surface emptySurface;
         private Surface cloudSurface;
@@ -148,6 +148,32 @@ namespace RubberStampEffect
                     dst[x, y] = currentPixel;
                 }
             }
+        }
+
+        protected override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (emptySurface != null)
+                {
+                    emptySurface.Dispose();
+                    emptySurface = null;
+                }
+
+                if (cloudSurface != null)
+                {
+                    cloudSurface.Dispose();
+                    cloudSurface = null;
+                }
+
+                if (cloudsEffect != null)
+                {
+                    cloudsEffect.Dispose();
+                    cloudsEffect = null;
+                }
+            }
+
+            base.OnDispose(disposing);
         }
     }
 }
