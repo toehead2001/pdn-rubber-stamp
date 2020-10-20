@@ -36,7 +36,7 @@ namespace RubberStampEffect
         private static readonly Image StaticIcon = new Bitmap(typeof(RubberStampEffectPlugin), "RubberStamp.png");
 
         public RubberStampEffectPlugin()
-            : base("Rubber Stamp", StaticIcon, "Object", EffectFlags.Configurable)
+            : base("Rubber Stamp", StaticIcon, "Object", new EffectOptions { Flags = EffectFlags.Configurable })
         {
             instanceSeed = unchecked((int)DateTime.Now.Ticks);
         }
@@ -123,7 +123,7 @@ namespace RubberStampEffect
             CloudsParameters.SetPropertyValue(CloudsEffect.PropertyNames.Scale, Amount1);
             CloudsParameters.SetPropertyValue(CloudsEffect.PropertyNames.Power, Amount2);
             CloudsParameters.SetPropertyValue(CloudsEffect.PropertyNames.Seed, Amount3);
-            using (EffectEnvironmentParameters environParameters = new EffectEnvironmentParameters(ColorBgra.Black, Color.FromArgb(Amount5, Color.Black), 0, EnvironmentParameters.GetSelection(srcArgs.Bounds), emptySurface))
+            using (EffectEnvironmentParameters environParameters = new EffectEnvironmentParameters(ColorBgra.Black, Color.FromArgb(Amount5, Color.Black), 0, EnvironmentParameters.GetSelectionAsPdnRegion(), emptySurface))
                 cloudsEffect.EnvironmentParameters = environParameters;
             cloudsEffect.SetRenderInfo(CloudsParameters, new RenderArgs(cloudSurface), new RenderArgs(emptySurface));
 
