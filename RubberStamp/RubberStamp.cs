@@ -125,6 +125,9 @@ namespace RubberStampEffect
         protected override void OnRender(Rectangle[] renderRects, int startIndex, int length)
         {
             if (length == 0) return;
+
+            cloudsEffect.Render(renderRects, startIndex, length);
+
             for (int i = startIndex; i < startIndex + length; ++i)
             {
                 Render(DstArgs.Surface, SrcArgs.Surface, renderRects[i]);
@@ -133,8 +136,6 @@ namespace RubberStampEffect
 
         private void Render(Surface dst, Surface src, Rectangle rect)
         {
-            cloudsEffect.Render(new Rectangle[1] { rect }, 0, 1);
-
             ColorBgra currentPixel;
             for (int y = rect.Top; y < rect.Bottom; y++)
             {
